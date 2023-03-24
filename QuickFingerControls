@@ -1,0 +1,19 @@
+import maya.cmds as cmds
+ 
+selJoints = cmds.ls(sl=True)
+ 
+for joints in selJoints: 
+     newName = joints.format()
+     #newName = newName.replace('NameSpaceToRemove:', '')  #Only if you need to remove a namespace from your joints
+     list = []
+     list.append(cmds.curve( name = newName + '_ctrl', p =[(-0.5692978297614414, 0.5692978297614414, -0.5692978297614414), (-0.5692978297614414, 0.5692978297614414, 0.5692978297614414), (0.5692978297614414, 0.5692978297614414, 0.5692978297614414), (0.5692978297614414, 0.5692978297614414, -0.5692978297614414), (-0.5692978297614414, 0.5692978297614414, -0.5692978297614414), (-0.5692978297614414, -0.5692978297614414, -0.5692978297614414), (0.5692978297614414, -0.5692978297614414, -0.5692978297614414), (0.5692978297614414, 0.5692978297614414, -0.5692978297614414), (0.5692978297614414, 0.5692978297614414, 0.5692978297614414), (0.5692978297614414, -0.5692978297614414, 0.5692978297614414), (0.5692978297614414, -0.5692978297614414, -0.5692978297614414), (-0.5692978297614414, -0.5692978297614414, -0.5692978297614414), (-0.5692978297614414, -0.5692978297614414, 0.5692978297614414), (0.5692978297614414, -0.5692978297614414, 0.5692978297614414), (0.5692978297614414, 0.5692978297614414, 0.5692978297614414), (-0.5692978297614414, 0.5692978297614414, 0.5692978297614414), (-0.5692978297614414, -0.5692978297614414, 0.5692978297614414)],per = False, d=1, k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]))
+     for x in range(len(list)-1): 
+         cmds.makeIdentity(list[x+1], apply=True, t=1, r=1, s=1, n=0)
+         shapeNode = cmds.listRelatives(list[x+1], shapes=True)
+         cmds.parent(shapeNode, list[0], add=True, s=True)
+         cmds.delete(list[x+1])
+     boxSelect = cmds.select(list[0])
+     cmds.group(name = newName + '_drive')
+     groupMade = cmds.group(name = newName + '_grp')
+     cmds.parentConstraint(joints, groupMade, maintainOffset = False)
+     cmds.parentConstraint(joints, groupMade, remove = True)
