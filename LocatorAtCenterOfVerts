@@ -1,0 +1,8 @@
+import maya.cmds as cmds
+
+selVerts = cmds.ls(sl=True)
+clst = cmds.cluster()
+pos = cmds.xform(clst[1], q=True, ws=True, rp=True)
+loc = cmds.spaceLocator()
+cmds.move(pos[0], pos[1], pos[2])
+cmds.delete(clst[1])
