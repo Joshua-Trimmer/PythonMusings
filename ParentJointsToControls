@@ -1,0 +1,6 @@
+import maya.cmds as cmds
+selCurves = cmds.ls(sl=True)
+for items in selCurves:
+    newCurves = items.replace('_ctrl', '')
+    newJoints = ('*' + newCurves) # modify lines 4 and 5 to work with your naming conventions
+    cmds.parentConstraint(items, newJoints, maintainOffset = True)
