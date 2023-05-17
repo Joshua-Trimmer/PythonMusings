@@ -1,0 +1,21 @@
+###Get translation and rotation of controls in a dictionary###
+for objects in selCurves:
+    rootTranslate = cmds.getAttr('%s.translate' % objects)
+    rootRotation = cmds.getAttr('%s.rotate' % objects)
+    translate = {}
+    rotation = {}
+    translate['translate'] = rootTranslate
+    rotation['rotation'] = rootRotation 
+    savedControls[objects] = translate, rotation
+
+###Get names of parents of controls###
+ctrls = cmds.ls(sl = True)
+connections = cmds.listConnections(ctrls, type= ' constraint')
+connections = connections[0]
+gettingConstraints = []
+for i in range(9):
+    rawAttributes = cmds.listAttr(connections, string = '*W' + str(i)) 
+    if rawAttributes == None:
+        pass
+    else:
+        gettingConstraints.append(rawAttributes)
