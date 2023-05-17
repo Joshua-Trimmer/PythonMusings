@@ -20,3 +20,18 @@ for i in range(9):
         pass
     else:
         gettingConstraints.append(rawAttributes)
+
+
+#########################Saves out hierarchy#########################
+def hierarchyTree(theParent, tree):
+    children = cmds.listRelatives(theParent, c = True, type='transform')
+    if children:
+        tree[str(theParent)] = (children, {})
+        for child in children:
+            hierarchyTree(child, tree[str(theParent)][1])
+
+selection = cmds.ls(sl = True)
+hierarchy_tree = {}
+hierarchyTree(selection, hierarchy_tree)
+print pprint.pprint(hierarchy_tree, width = 1, indent = 2)
+#####################################################################
