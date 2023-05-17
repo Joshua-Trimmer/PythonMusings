@@ -10,8 +10,9 @@ for objects in selCurves:
 
 ###Get names of parents of controls###
 ctrls = cmds.ls(sl = True)
-connections = cmds.listConnections(ctrls, type= ' constraint')
+connections = cmds.listConnections(ctrls, type= 'constraint')
 connections = connections[0]
+#print connections
 gettingConstraints = []
 for i in range(9):
     rawAttributes = cmds.listAttr(connections, string = '*W' + str(i)) 
