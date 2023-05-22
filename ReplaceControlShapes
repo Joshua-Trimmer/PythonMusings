@@ -1,0 +1,31 @@
+import maya.cmds as cmds
+
+#Sets up controls to manipulate.
+ctrlSel = cmds.ls(sl = True)
+newCtrl = ctrlSel[0]   #First selected is the source to copy from
+oldCtrls = ctrlSel[1:None]   #Everything else selected are the controls to replace
+
+for oldCtrl in oldCtrls:
+    constraint_list = cmds.listConnections('{}.translate'.format(oldCtrl),type='constraint')
+    
+    #Gets the joint to orient to that is the child of the parent constraint
+    if constraint_list:
+        for con in constraint_list:
+            jnt = cmds.listConnections('{}.constraintTranslateX'.format(con))
+    
+    copy = cmds.duplicate(newCtrl, renameChildren = True)
+    cmds.delete(cmds.parentConstraint(jnt, copy))
+    cmds.parent(copy, oldCtrl)
+    cmds.makeIdentity(copy, apply = True)
+    old_shapes = cmds.listRelatives(oldCtrl, type='shape')
+    ctrl_shapes = cmds.listRelatives(copy, type='shape')
+    
+    for ctrl_shape in ctrl_shapes:
+        cmds.setAttr(ctrl_shape + '.overrideEnabled', 1)
+        newName = cmds.rename(ctrl_shape, oldCtrl+ 'Shape#')
+        cmds.parent(newName, oldCtrl, relative= True, shape = True)
+        
+    cmds.delete(copy)
+    cmds.delete(old_shapes)
+
+cmds.select(clear = True)
