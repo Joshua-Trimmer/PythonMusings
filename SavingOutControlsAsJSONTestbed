@@ -46,10 +46,11 @@ newCtrl = ctrlSel[0]
 oldCtrls = ctrlSel[1:None]
 for oldCtrl in oldCtrls:
     constraint_list = cmds.listConnections('{}.translate'.format(oldCtrl),type='constraint')
+    
     if constraint_list:
         for con in constraint_list:
             jnt = cmds.listConnections('{}.constraintTranslateX'.format(con))
-    print jnt
+    
     copy = cmds.duplicate(newCtrl, renameChildren = True)
     cmds.delete(cmds.parentConstraint(jnt, copy))
     cmds.parent(copy, oldCtrl)
