@@ -1,0 +1,14 @@
+import maya.cmds as cmds
+
+boneList = cmds.ls(sl = True)
+duplicateBones = []
+for bone in boneList:
+    cmds.duplicate(bone, parentOnly = True, name = bone + '_fk')
+    cmds.select(clear = True)
+    newBone = bone + '_fk'
+    duplicateBones.append(str(newBone))
+
+listLength = len(duplicateBones)
+for i in range(listLength - 1):
+    cmds.parent(duplicateBones[i+1], duplicateBones[i])
+cmds.parent(duplicateBones[0], world = True)
