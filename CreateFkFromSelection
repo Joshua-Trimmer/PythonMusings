@@ -12,3 +12,26 @@ listLength = len(duplicateBones)
 for i in range(listLength - 1):
     cmds.parent(duplicateBones[i+1], duplicateBones[i])
 cmds.parent(duplicateBones[0], world = True)
+
+groupKids = []
+curveParents = []
+
+for dupBone in duplicateBones:
+    jntnames = cmds.format(dupBone)
+    newname = jntnames + '_ctrl'
+    cmds.circle(name = newname, radius = 15)
+    cmds.setAttr(str(newname)+ '.rotateY', 90)
+    boxSelect = cmds.select(newname)
+    cmds.group(name=newname.replace('_ctrl', '_drive'))
+    groupMade = cmds.group(name=newname.replace('_ctrl', '_grp'))
+    cmds.parentConstraint(dupBone, groupMade, maintainOffset = False)
+    cmds.parentConstraint(dupBone, groupMade, remove = True)
+    groupKids.append(str(groupMade))
+    curveParents.append(str(newname))
+    
+for y in range(len(curveParents) - 1):
+    cmds.parent(groupKids[y+1], curveParents[y])
+    
+for z in range(len(duplicateBones)):
+    cmds.parentConstraint(curveParents[z], duplicateBones[z], maintainOffset = True)
+    cmds.parentConstraint(duplicateBones[z], boneList[z], maintainOffset = True)
