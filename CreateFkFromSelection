@@ -21,6 +21,7 @@ for dupBone in duplicateBones:
     newname = jntnames + '_ctrl'
     cmds.circle(name = newname, radius = 15)
     cmds.setAttr(str(newname)+ '.rotateY', 90)
+    cmds.makeIdentity(newname, apply = True)
     boxSelect = cmds.select(newname)
     cmds.group(name=newname.replace('_ctrl', '_drive'))
     groupMade = cmds.group(name=newname.replace('_ctrl', '_grp'))
