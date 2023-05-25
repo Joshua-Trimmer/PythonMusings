@@ -1,0 +1,108 @@
+import maya.cmds as cmds
+
+def error_window(message):
+    import maya.cmds as cmds
+    errorWin = cmds.window(maximizeButton = False, title = 'Error', widthHeight = (300, 75))
+                
+    cmds.columnLayout(adjustableColumn = True)
+    cmds.text(label = message, height = 50, wordWrap = True)
+    cmds.button( label='Close', command=('cmds.deleteUI(\"' + errorWin + '\", window=True)') )
+                
+    cmds.showWindow(errorWin)
+
+
+def store_skeletal_selection():
+    import maya.cmds as cmds
+    boneList = cmds.ls(sl = True)
+    isJoint = True
+    for bone in boneList:
+        if cmds.objectType(bone) != 'joint':
+            isJoint = False
+        else:
+            pass
+    if len(boneList) == 0:
+        error_window('No Selection Made')
+    elif len(boneList) < 2:
+        error_window('Too Few Bones Selected')
+    elif isJoint == False:
+        error_window('Non Joints Included In Selection')
+    else:
+        return boneList
+        
+     
+        
+def make_fk_ctrl(boneList, size):
+    import maya.cmds as cmds
+    
+    duplicateBones = []
+    for bone in boneList:
+        cmds.duplicate(bone, parentOnly = True, name = bone + '_fk')
+        cmds.select(clear = True)
+        newBone = bone + '_fk'
+        duplicateBones.append(str(newBone))
+    
+    listLength = len(duplicateBones)
+    for i in range(listLength - 1):
+        cmds.parent(duplicateBones[i+1], duplicateBones[i])
+    cmds.parent(duplicateBones[0], world = True)
+    
+    groupKids = []
+    curveParents = []
+    
+    for dupBone in duplicateBones:
+        jntnames = cmds.format(dupBone)
+        newname = jntnames + '_ctrl'
+        cmds.circle(name = newname, radius = size)
+        cmds.setAttr(str(newname)+ '.rotateY', 90)
+        cmds.makeIdentity(newname, apply = True)
+        boxSelect = cmds.select(newname)
+        cmds.group(name=newname.replace('_ctrl', '_drive'))
+        groupMade = cmds.group(name=newname.replace('_ctrl', '_grp'))
+        cmds.parentConstraint(dupBone, groupMade, maintainOffset = False)
+        cmds.parentConstraint(dupBone, groupMade, remove = True)
+        groupKids.append(str(groupMade))
+        curveParents.append(str(newname))
+        
+    for y in range(len(curveParents) - 1):
+        cmds.parent(groupKids[y+1], curveParents[y])
+        
+    for z in range(len(duplicateBones)):
+        cmds.parentConstraint(curveParents[z], duplicateBones[z], maintainOffset = True)
+        cmds.parentConstraint(duplicateBones[z], boneList[z], maintainOffset = True)
+        
+        
+        
+def make_ik_ctrl(boneList, size):
+    import maya.cmds as cmds
+    
+    duplicateBones = []
+    for bone in boneList:
+        cmds.duplicate(bone, parentOnly = True, name = bone + '_ik')
+        cmds.select(clear = True)
+        newBone = bone + '_ik'
+        duplicateBones.append(str(newBone))
+    
+    listLength = len(duplicateBones)
+    for i in range(listLength - 1):
+        cmds.parent(duplicateBones[i+1], duplicateBones[i])
+    for x in range(listLength):
+        cmds.makeIdentity(duplicateBones[x], apply = True)
+    cmds.parent(duplicateBones[0], world = True)    
+    
+    cmds.ikHandle(name = boneList[listLength-1] + '_ikHandle', startJoint = duplicateBones[0], 
+                  endEffector = duplicateBones[listLength-1])
+    
+    handleName = boneList[listLength-1] + '_ikHandle'
+    newname = duplicateBones[listLength-1] + '_ctrl'
+    cmds.circle(name = newname, radius = size)
+    cmds.setAttr(str(newname)+ '.rotateY', 90)
+    cmds.makeIdentity(newname, apply = True)
+    cmds.group(name=newname.replace('_ctrl', '_drive'))
+    groupMade = cmds.group(name=newname.replace('_ctrl', '_grp'))
+    cmds.parentConstraint(boneList[listLength-1], groupMade, maintainOffset = False)
+    cmds.parentConstraint(boneList[listLength-1], groupMade, remove = True)
+    cmds.pointConstraint(newname, handleName, maintainOffset = True)
+    cmds.orientConstraint(newname, duplicateBones[listLength-1], maintainOffset = True)
+    
+    for z in range(listLength):
+        cmds.parentConstraint(duplicateBones[z], boneList[z], maintainOffset = True)
