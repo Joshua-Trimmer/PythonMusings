@@ -1,0 +1,16 @@
+def store_skeletal_selection():
+    boneList = cmds.ls(sl = True)
+    isJoint = True
+    for bone in boneList:
+        if cmds.objectType(bone) != 'joint':
+            isJoint = False
+        else:
+            pass
+    if len(boneList) == 0:
+        print('Error: No Selection Made')
+    elif len(boneList) < 2:
+        print('Error: Too Few Bones Selected')
+    elif isJoint == False:
+        print('Error: Non Joints Included In Selection')
+    else:
+        return boneList
