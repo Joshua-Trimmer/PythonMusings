@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import FKIK_Tools as jt
+import FKIK_Module as jt
 boneListTextField = None
 
 
@@ -9,9 +9,9 @@ def button_wrapper(fn, *args, **kwargs):
    
     return wrapped
     
-def return_selection():
+def return_selection(txtField):
     boneList = jt.store_skeletal_selection()
-    cmds.textField(boneListTextField, edit = True, text = str(boneList))
+    cmds.textField(txtField, edit = True, text = str(boneList))
 
 def fkik_bone_window():
     win = cmds.window(title='FKIK Creator', widthHeight =(342, 75), maximizeButton = False, 
@@ -21,11 +21,11 @@ def fkik_bone_window():
     
     cmds.rowLayout(numberOfColumns = 2, adjustableColumn = 1)
     boneListTextField = cmds.textField(editable = False)
-    cmds.button(label = 'Select Bones', command = button_wrapper(return_selection))
+    cmds.button(label = 'Select Bones', command = button_wrapper(return_selection, boneListTextField))
     
     cmds.setParent(mainRule)
     cmds.rowLayout(numberOfColumns = 2)
-    cmds.button(label = 'Create FK Chain From Selection')
+    cmds.button(label = 'Create FK Chain From Selection', command = button_wrapper(jt.make_fk_ctrl, boneList, 5))
     cmds.button(label = 'Create IK Chain From Selection')
     
     cmds.setParent(mainRule)
