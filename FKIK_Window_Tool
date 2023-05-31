@@ -1,36 +1,58 @@
 import maya.cmds as cmds
-import FKIK_Module as jt
-boneListTextField = None
+import FKIK_Tools as jt
 
+class FKIK_Window:
+    
+    def __init__(self):
+        self.boneList = []
+        self.sizeVar = 0
+        
+        def return_selection(txtField):
+            boneList = jt.store_skeletal_selection()
+            self.boneList = boneList
+            cmds.textField(txtField, edit = True, text = str(boneList))
+                
+        def call_fk(theBones, theSize):
+            jt.make_fk_ctrl(theBones, theSize)
+            
+        def call_ik(boneSel, sizeSel):
+            jt.make_ik_ctrl(boneSel, sizeSel)
+            
+        def update_sizeVar(_):
+            self.sizeVar = cmds.intField(self.controllerInt, query = True, value = True)
+                
+        def test_return(testReturn):
+            print(testReturn)
+        
+        
+        self.win = cmds.window(title='FKIK Creator', widthHeight =(342, 75), 
+        maximizeButton = False, resizeToFitChildren = True, sizeable = False)
+        mainRule = cmds.columnLayout(adjustableColumn = True)
 
-def button_wrapper(fn, *args, **kwargs):
-    def wrapped(_):
-        fn(*args, **kwargs)
-   
-    return wrapped
-    
-def return_selection(txtField):
-    boneList = jt.store_skeletal_selection()
-    cmds.textField(txtField, edit = True, text = str(boneList))
+        
+        cmds.rowLayout(numberOfColumns = 4, adjustableColumn = 1)
+        self.boneListTextField = cmds.textField(editable = False, width = 250)
+        cmds.button(label = 'Select Bones', command = lambda x: 
+                    return_selection(self.boneListTextField))
+        cmds.text(label = 'Controller Size:  ')
+        self.controllerInt = cmds.intField(changeCommand = update_sizeVar)
+        
+        cmds.setParent(mainRule)
+        cmds.rowLayout(numberOfColumns = 2)
+        cmds.button(label = 'Create FK Chain From Selection', command = lambda x: 
+                    call_fk(self.boneList, self.sizeVar))
+        cmds.button(label = 'Create IK Chain From Selection', command = lambda x:
+                    call_ik(self.boneList, self.sizeVar))
+        
+        cmds.setParent(mainRule)
+        cmds.button(label = 'Print Controller Size', command = lambda x: test_return(self.sizeVar))
+        
+        cmds.showWindow(self.win)
+        
 
-def fkik_bone_window():
-    win = cmds.window(title='FKIK Creator', widthHeight =(342, 75), maximizeButton = False, 
-    resizeToFitChildren = True, sizeable = False)
     
-    mainRule = cmds.columnLayout(adjustableColumn = True)
+        
     
-    cmds.rowLayout(numberOfColumns = 2, adjustableColumn = 1)
-    boneListTextField = cmds.textField(editable = False)
-    cmds.button(label = 'Select Bones', command = button_wrapper(return_selection, boneListTextField))
-    
-    cmds.setParent(mainRule)
-    cmds.rowLayout(numberOfColumns = 2)
-    cmds.button(label = 'Create FK Chain From Selection', command = button_wrapper(jt.make_fk_ctrl, boneList, 5))
-    cmds.button(label = 'Create IK Chain From Selection')
-    
-    cmds.setParent(mainRule)
-    cmds.button(label = 'Set Up FKIK Switch (Non Matching)')
-    
-    cmds.showWindow(win)
-    
-fkik_bone_window()
+
+        
+FKIK_Window()
