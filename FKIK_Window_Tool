@@ -5,7 +5,7 @@ class FKIK_Window:
     
     def __init__(self):
         self.boneList = []
-        self.sizeVar = 0
+        self.sizeVar = 1
         
         def return_selection(txtField):
             boneList = jt.store_skeletal_selection()
@@ -31,18 +31,18 @@ class FKIK_Window:
 
         
         cmds.rowLayout(numberOfColumns = 4, adjustableColumn = 1)
-        self.boneListTextField = cmds.textField(editable = False, width = 250)
+        self.boneListTextField = cmds.textField(editable = False, width = 240)
         cmds.button(label = 'Select Bones', command = lambda x: 
                     return_selection(self.boneListTextField))
         cmds.text(label = 'Controller Size:  ')
-        self.controllerInt = cmds.intField(changeCommand = update_sizeVar)
+        self.controllerInt = cmds.intField(changeCommand = update_sizeVar, minValue = 1)
         
         cmds.setParent(mainRule)
         cmds.rowLayout(numberOfColumns = 2)
         cmds.button(label = 'Create FK Chain From Selection', command = lambda x: 
-                    call_fk(self.boneList, self.sizeVar))
+                    call_fk(self.boneList, self.sizeVar), width = 260)
         cmds.button(label = 'Create IK Chain From Selection', command = lambda x:
-                    call_ik(self.boneList, self.sizeVar))
+                    call_ik(self.boneList, self.sizeVar), width = 260)
         
         cmds.setParent(mainRule)
         cmds.button(label = 'Print Controller Size', command = lambda x: test_return(self.sizeVar))
