@@ -45,7 +45,8 @@ class FKIK_Window:
                     call_ik(self.boneList, self.sizeVar), width = 260)
         
         cmds.setParent(mainRule)
-        cmds.button(label = 'Print Controller Size', command = lambda x: test_return(self.sizeVar))
+        cmds.button(label = 'Create FKIK Switch (Non Matching)', command = lambda x:
+                    jt.create_fkik_switch(self.boneList))
         
         cmds.showWindow(self.win)
         
