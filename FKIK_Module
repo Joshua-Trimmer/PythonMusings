@@ -13,6 +13,8 @@ def error_window(message):
 
 def store_skeletal_selection():
     import maya.cmds as cmds
+    global boneList
+    
     boneList = cmds.ls(sl = True)
     isJoint = True
     for bone in boneList:
@@ -31,11 +33,10 @@ def store_skeletal_selection():
         
      
         
-def make_fk_ctrl(boneList, size):
+def make_fk_ctrl(boneLists, size):
     import maya.cmds as cmds
-    
     duplicateBones = []
-    for bone in boneList:
+    for bone in boneLists:
         cmds.duplicate(bone, parentOnly = True, name = bone + '_fk')
         cmds.select(clear = True)
         newBone = bone + '_fk'
@@ -68,15 +69,16 @@ def make_fk_ctrl(boneList, size):
         
     for z in range(len(duplicateBones)):
         cmds.parentConstraint(curveParents[z], duplicateBones[z], maintainOffset = True)
-        cmds.parentConstraint(duplicateBones[z], boneList[z], maintainOffset = True)
+        cmds.parentConstraint(duplicateBones[z], boneLists[z], maintainOffset = True)
         
         
         
-def make_ik_ctrl(boneList, size):
+def make_ik_ctrl(boneLists, size):
     import maya.cmds as cmds
+    global boneList
     
     duplicateBones = []
-    for bone in boneList:
+    for bone in boneLists:
         cmds.duplicate(bone, parentOnly = True, name = bone + '_ik')
         cmds.select(clear = True)
         newBone = bone + '_ik'
@@ -89,20 +91,123 @@ def make_ik_ctrl(boneList, size):
         cmds.makeIdentity(duplicateBones[x], apply = True)
     cmds.parent(duplicateBones[0], world = True)    
     
-    cmds.ikHandle(name = boneList[listLength-1] + '_ikHandle', startJoint = duplicateBones[0], 
+    cmds.ikHandle(name = boneLists[listLength-1] + '_ikHandle', startJoint = duplicateBones[0], 
                   endEffector = duplicateBones[listLength-1])
     
-    handleName = boneList[listLength-1] + '_ikHandle'
+    handleName = boneLists[listLength-1] + '_ikHandle'
     newname = duplicateBones[listLength-1] + '_ctrl'
     cmds.circle(name = newname, radius = size)
     cmds.setAttr(str(newname)+ '.rotateY', 90)
     cmds.makeIdentity(newname, apply = True)
     cmds.group(name=newname.replace('_ctrl', '_drive'))
     groupMade = cmds.group(name=newname.replace('_ctrl', '_grp'))
-    cmds.parentConstraint(boneList[listLength-1], groupMade, maintainOffset = False)
-    cmds.parentConstraint(boneList[listLength-1], groupMade, remove = True)
+    cmds.parentConstraint(boneLists[listLength-1], groupMade, maintainOffset = False)
+    cmds.parentConstraint(boneLists[listLength-1], groupMade, remove = True)
     cmds.pointConstraint(newname, handleName, maintainOffset = True)
     cmds.orientConstraint(newname, duplicateBones[listLength-1], maintainOffset = True)
     
     for z in range(listLength):
-        cmds.parentConstraint(duplicateBones[z], boneList[z], maintainOffset = True)
+        cmds.parentConstraint(duplicateBones[z], boneLists[z], maintainOffset = True)
+        
+        
+def create_fkik_ctrl():
+    curve1 = []
+    curve1.append(cmds.curve( p =[(-35.23594030699306, 0.0, 10.437641642766593), (-35.23594030699306, 0.0, -10.437641642766579), (-21.152955880395307, 0.0, -10.437641642766579), (-21.152955880395307, 0.0, -7.974187339630674), (-32.473453978621, 0.0, -7.974187339630674), (-32.473453978621, 0.0, -1.5093997464300912), (-22.67659524707474, 0.0, -1.5093997464300912), (-22.67659524707474, 0.0, 0.9540545567058132), (-32.473453978621, 0.0, 0.9540545567058132), (-32.473453978621, 0.0, 10.437641642766593), (-35.23594030699306, 0.0, 10.437641642766593)],per = True, d=1, k=[0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3]))
+    curve1.append(cmds.curve( p =[(-17.678488539556223, 0.0, 10.437641642766593), (-17.678488539556223, 0.0, -10.437641642766579), (-14.916002211184168, 0.0, -10.437641642766579), (-14.916002211184168, 0.0, -0.08543772149604933), (-4.54955866966428, 0.0, -10.437641642766579), (-0.8045385440877336, 0.0, -10.437641642766579), (-9.56190499743214, 0.0, -1.9793072146583341), (-0.42006879735553904, 0.0, 10.437641642766593), (-4.065411581186706, 0.0, 10.437641642766593), (-11.498493351342448, 0.0, -0.1281565822440598), (-14.916002211184168, 0.0, 3.2039145561016085), (-14.916002211184168, 0.0, 10.437641642766593), (-17.678488539556223, 0.0, 10.437641642766593)],per = True, d=1, k=[0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3]))
+    curve1.append(cmds.curve( p =[(-0.3631103163581786, 0.0, 10.793632149000103), (5.688728289611535, 0.0, -10.793632149000103), (7.739233605516564, 0.0, -10.793632149000103), (1.7016346197961918, 0.0, 10.793632149000103), (-0.3631103163581786, 0.0, 10.793632149000103)],per = True, d=1, k=[0, 0, 0, 1, 1]))
+    curve1.append(cmds.curve( p =[(10.459001073140602, 0.0, 10.437641642766593), (10.459001073140602, 0.0, -10.437641642766579), (13.221487401512652, 0.0, -10.437641642766579), (13.221487401512652, 0.0, 10.437641642766593), (10.459001073140602, 0.0, 10.437641642766593)],per = True, d=1, k=[0, 0, 0, 1, 1]))
+    curve1.append(cmds.curve( p =[(17.97752056479238, 0.0, 10.437641642766593), (17.97752056479238, 0.0, -10.437641642766579), (20.740006893164434, 0.0, -10.437641642766579), (20.740006893164434, 0.0, -0.08543772149604933), (31.10645043468432, 0.0, -10.437641642766579), (34.851470560260864, 0.0, -10.437641642766579), (26.09410410691647, 0.0, -1.9793072146583341), (35.23594030699306, 0.0, 10.437641642766593), (31.5905975231619, 0.0, 10.437641642766593), (24.15751575300616, 0.0, -0.1281565822440598), (20.740006893164434, 0.0, 3.2039145561016085), (20.740006893164434, 0.0, 10.437641642766593), (17.97752056479238, 0.0, 10.437641642766593)],per = True, d=1, k=[0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3]))
+    for x in range(len(curve1)-1):
+    	cmds.makeIdentity(curve1[x+1], apply=True, t=1, r=1, s=1, n=0)
+    	shapeNode = cmds.listRelatives(curve1[x+1], shapes=True)
+    	cmds.parent(shapeNode, curve1[0], add=True, s=True)
+    	cmds.delete(curve1[x+1])
+    fp = cmds.listRelatives(curve1[0], f=True)[0]
+    path = fp.split("|")[1]
+    cmds.select(path)
+    cmds.rename(path, 'FKIK_ctrl')
+    cmds.setAttr('FKIK_ctrl.translateZ', 80)
+    cmds.makeIdentity('FKIK_ctrl', apply = True)
+    
+
+def create_fkik_switch(boneIn):
+    usableInput = None
+    usableNodeIn = None
+    usableNodeOut = None
+    if cmds.objExists('FKIK_ctrl'):
+        pass
+    else:
+        create_fkik_ctrl()
+        
+    attrName = boneIn[-1]
+    attrName = attrName.replace('_jnt', '')
+    attrName = attrName.replace('_', '')
+    cmds.select('FKIK_ctrl')
+    cmds.addAttr(longName = attrName + 'FkikSwtich', keyable = True, 
+                  attributeType = 'float', hasMinValue = True, 
+                  hasMaxValue = True, minValue = 0, maxValue = 1)
+    
+    constraintsSel = []
+    for bone in boneIn:
+        constraint_list = cmds.listConnections('{}.translateX'.format(bone),type='constraint')
+        for con in constraint_list:
+            constraintsSel.append(con)
+            
+    fkBones = []
+    fkCtrls = []
+    ikBones = []
+    ikCtrls = []
+    for bone in boneIn:
+        fkBones.append(bone + '_fk')
+        fkCtrls.append(bone + '_fk_ctrl')
+        ikBones.append(bone + '_ik')
+        ikCtrls.append(bone + '_ik_ctrl')
+    
+    if cmds.objExists('reverse*'):
+        cmds.select('reverse*')
+        reverseNodes = cmds.ls(sl = True)
+        axis = ['X', 'Y', 'Z']
+        inputsTest = dict()
+        for nodes in reverseNodes:    
+            for i in axis:
+                inputsTest[i] = cmds.listConnections(nodes + '.input%s' % i)
+                if inputsTest[i] == None:
+                    usableInput = nodes + '.input%s' % i
+                    usableNodeIn = nodes + '.input%s' %i
+                    usableNodeOut = nodes + '.output%s' %i
+                    break
+                else:
+                    pass
+        if usableInput == None:
+            newNode = cmds.createNode('reverse')
+            usableNodeIn = newNode + '.inputX'
+            usableNodeOut = newNode + '.outputX'
+    else:
+        newNode = cmds.createNode('reverse')
+        usableNodeIn = newNode + '.inputX'
+        usableNodeOut = newNode + '.outputX'
+    
+    thisRange = len(boneList)
+    
+    for x in range(thisRange):
+        usableConnection = None
+        constraintWeights = cmds.parentConstraint(constraintsSel[x],q=1,weightAliasList=1)
+        for weight in constraintWeights:
+            if 'ik' in weight:
+                usableConnection = weight
+            else:
+                pass 
+        cmds.connectAttr('FKIK_ctrl.handlFkikSwtich',  constraintsSel[x] + '.' + usableConnection)
+    cmds.connectAttr('FKIK_ctrl.handlFkikSwtich',  ikCtrls[-1] + '.visibility')
+    
+    cmds.connectAttr('FKIK_ctrl.handlFkikSwtich', usableNodeIn)
+    for x in range(thisRange):
+        usableConnection = None
+        contraintWeights = cmds.parentConstraint(constraintsSel[x], q=1, weightAliasList = 1)
+        for weight in contraintWeights:
+            if 'fk' in weight:
+                usableConnection = weight
+            else:
+                pass
+        cmds.connectAttr(usableNodeOut,  constraintsSel[x] + '.' + usableConnection)
+        cmds.connectAttr(usableNodeOut, fkCtrls[x] + '.visibility')
