@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 boneList = cmds.ls(sl = True)
-print(boneList)
 
+## Creates FKIK Curve Control ##
 def create_fkik_ctrl():
     curve1 = []
     curve1.append(cmds.curve( p =[(-35.23594030699306, 0.0, 10.437641642766593), (-35.23594030699306, 0.0, -10.437641642766579), (-21.152955880395307, 0.0, -10.437641642766579), (-21.152955880395307, 0.0, -7.974187339630674), (-32.473453978621, 0.0, -7.974187339630674), (-32.473453978621, 0.0, -1.5093997464300912), (-22.67659524707474, 0.0, -1.5093997464300912), (-22.67659524707474, 0.0, 0.9540545567058132), (-32.473453978621, 0.0, 0.9540545567058132), (-32.473453978621, 0.0, 10.437641642766593), (-35.23594030699306, 0.0, 10.437641642766593)],per = True, d=1, k=[0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3]))
@@ -24,11 +24,16 @@ def create_fkik_ctrl():
 
 def create_fkik_switch(boneIn):
     usableInput = None
+    usableNodeIn = None
+    usableNodeOut = None
+    
+    ## Creates FKIK Control If It Doesn't Exist ##
     if cmds.objExists('FKIK_ctrl'):
         pass
     else:
         create_fkik_ctrl()
         
+    ## Adds Keyable Atribute To FKIK Control ##
     attrName = boneIn[-1]
     attrName = attrName.replace('_jnt', '')
     attrName = attrName.replace('_', '')
@@ -37,12 +42,14 @@ def create_fkik_switch(boneIn):
                   attributeType = 'float', hasMinValue = True, 
                   hasMaxValue = True, minValue = 0, maxValue = 1)
     
+    ## Finds The Constraints for the Bones Selected ##
     constraintsSel = []
     for bone in boneIn:
         constraint_list = cmds.listConnections('{}.translateX'.format(bone),type='constraint')
         for con in constraint_list:
             constraintsSel.append(con)
             
+    ## Defines all the Bones and Controls Created Thus Far ##
     fkBones = []
     fkCtrls = []
     ikBones = []
@@ -53,6 +60,9 @@ def create_fkik_switch(boneIn):
         ikBones.append(bone + '_ik')
         ikCtrls.append(bone + '_ik_ctrl')
     
+    ## Sees if there is already an existing Reverse Node ##
+    ## Searches through the inputs to see if there is one without connections ##
+    ## Creates a reverse node if no usable input Exist ##
     if cmds.objExists('reverse*'):
         cmds.select('reverse*')
         reverseNodes = cmds.ls(sl = True)
@@ -63,42 +73,46 @@ def create_fkik_switch(boneIn):
                 inputsTest[i] = cmds.listConnections(nodes + '.input%s' % i)
                 if inputsTest[i] == None:
                     usableInput = nodes + '.input%s' % i
+                    usableNodeIn = nodes + '.input%s' %i
+                    usableNodeOut = nodes + '.output%s' %i
                     break
                 else:
                     pass
         if usableInput == None:
             newNode = cmds.createNode('reverse')
-            usableNode = newNode + '.inputX'
+            usableNodeIn = newNode + '.inputX'
+            usableNodeOut = newNode + '.outputX'
     else:
         newNode = cmds.createNode('reverse')
-        usableNode = newNode + 'inputX'
+        usableNodeIn = newNode + '.inputX'
+        usableNodeOut = newNode + '.outputX'
     
+    thisRange = len(boneList)
+    
+    ## Uses all the information gathered and created to connect IK controls ##
+    for x in range(thisRange):
+        usableConnection = None
+        constraintWeights = cmds.parentConstraint(constraintsSel[x], query = True, weightAliasList = 1)
+        for weight in constraintWeights:
+            if 'ik' in weight:
+                usableConnection = weight
+            else:
+                pass 
+        cmds.connectAttr('FKIK_ctrl.handlFkikSwtich',  constraintsSel[x] + '.' + usableConnection)
+    cmds.connectAttr('FKIK_ctrl.handlFkikSwtich',  ikCtrls[-1] + '.visibility')
+    
+    ## Uses all the information gathered and created to connect FK controls ##
+    cmds.connectAttr('FKIK_ctrl.handlFkikSwtich', usableNodeIn)
+    for x in range(thisRange):
+        usableConnection = None
+        contraintWeights = cmds.parentConstraint(constraintsSel[x], query = True, weightAliasList = 1)
+        for weight in contraintWeights:
+            if 'fk' in weight:
+                usableConnection = weight
+            else:
+                pass
+        cmds.connectAttr(usableNodeOut,  constraintsSel[x] + '.' + usableConnection)
+        cmds.connectAttr(usableNodeOut, fkCtrls[x] + '.visibility')
 
                     
 create_fkik_switch(boneList)
-
-##########################################################################################
-
-constraintsSel = []
-for bone in boneList:
-    constraint_list = cmds.listConnections('{}.translateX'.format(bone),type='constraint')
-    print(constraint_list)
-    for con in constraint_list:
-        print con
-        constraintsSel.append(con)
-fkBones = []
-fkCtrls = []
-ikBones = []
-ikCtrls = []
-for bone in boneList:
-    fkBones.append(bone + '_fk')
-    fkCtrls.append(bone + '_fk_ctrl')
-    ikBones.append(bone + '_ik')
-    ikCtrls.append(bone + '_ik_ctrl')
-cmds.connectAttr('FKIK_ctrl.handlFkikSwtich',  constraintsSel[0] + '.' + fkBones[0] + '*')
-thisRange = len(boneList)
-for x in range(thisRange):
-    cmds.connectAttr('FKIK_ctrl.handlFkikSwitch',  contraintsSel[x] + '.' + fkbones[x] + 'W0')
-print(constraintsSel)
-print(fkBones)    
-       
